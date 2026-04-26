@@ -1,0 +1,36 @@
+name: Build Check
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "Source/**"
+      - "Config/**"
+      - "*.uproject"
+
+jobs:
+  compile:
+    name: Compile ${{ vars.PROJECT_NAME }}
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+          clean: false
+
+      - name: Compile project
+        timeout-minutes: 90
+        shell: cmd
+        run: |
+          ${{ vars.ENGINE_PATH }}\Engine\Build\BatchFiles\Build.bat ^
+          ${{ vars.PROJECT_NAME }}Editor ^
+          Win64 ^
+          Development ^
+          -Project="%GITHUB_WORKSPACE%\${{ vars.PROJECT_NAME }}.uproject" ^
+          -WaitMutex ^
+          -FromMsBuild ^
+          -Progress

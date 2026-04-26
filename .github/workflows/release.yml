@@ -1,0 +1,105 @@
+name: Package & Release
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  package:
+    name: Package & Release
+    runs-on: self-hosted
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          lfs: true
+          clean: false
+          fetch-depth: 0
+
+      - name: Read project version
+        id: version
+        shell: powershell
+        run: |
+          $ini = Get-Content "Config\DefaultGame.ini"
+          $line = $ini | Where-Object { $_ -match "^ProjectVersion=" }
+          $version = $line -replace "^ProjectVersion=", ""
+
+          if (-not $version) {
+            Write-Error "ProjectVersion not found."
+            Write-Error "Fill it in UE5: Edit -> Project Settings -> Description -> Project Version."
+            exit 1
+          }
+          
+          Write-Output "Detected project version: $version"
+          echo "project_version=$version" >> $env:GITHUB_OUTPUT
+          
+
+      - name: Check if version tag already exists
+        shell: powershell
+        run: |
+          $tag = "v${{ steps.version.outputs.project_version }}"
+          $exists = git tag --list $tag
+          
+          if ($exists) {
+            Write-Error "Tag '$tag' already exists."
+            Write-Error "Change ProjectVersion in UE5 (Edit -> Project Settings -> Description) before merging to main."
+            exit 1
+          }
+
+          Write-Output "Tag $tag is OK. Continuing..."
+      
+      - name: Package project
+        timeout-minutes: 180
+        shell: cmd
+        run: |
+          ${{ vars.ENGINE_PATH }}\Engine\Build\BatchFiles\RunUAT.bat BuildCookRun ^
+          -project="%GITHUB_WORKSPACE%\${{ vars.PROJECT_NAME }}.uproject" ^
+          -platform=Win64 ^
+          -clientconfig=Shipping ^
+          -nop4 ^
+          -utf8output ^
+          -build ^
+          -cook ^
+          -stage ^
+          -pak ^
+          -archive ^
+          -archivedirectory="%GITHUB_WORKSPACE%\Builds" ^
+          -package ^
+          -iostore ^
+          -compressed ^
+          -prereqs ^
+          -nodebuginfo ^
+          -unattended ^
+          -distribution ^
+          -target=${{ vars.PROJECT_NAME }}
+
+      - name: Zip packaged build
+        id: zip
+        shell: powershell
+        run: |
+          $source  = "Builds\Windows\*"
+          $dest = "${{ vars.PROJECT_NAME }}-v${{ steps.version.outputs.project_version }}-Win64.zip"
+          Compress-Archive -Path $source -DestinationPath $dest
+          echo "zip_path=$dest" >> $env:GITHUB_OUTPUT
+
+      - name: Release build
+        uses: softprops/action-gh-release@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          tag_name: 'v${{ steps.version.outputs.project_version }}'
+          name: '${{ vars.PROJECT_NAME }} v${{ steps.version.outputs.project_version }}'
+          body: |
+            See commit history for details.
+          files: '${{ steps.zip.outputs.zip_path }}'
+          draft: false
+          prerelease: false

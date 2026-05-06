@@ -3,6 +3,7 @@
 
 #include "HaunticaCameraTriggerBox.h"
 
+#include "Camera/CameraActor.h"
 #include "Components/ArrowComponent.h"
 #include "Components/ShapeComponent.h"
 #include "Kismet/GameplayStatics.h"
@@ -26,22 +27,87 @@ AHaunticaCameraTriggerBox::AHaunticaCameraTriggerBox()
 	GetCollisionComponent()->OnComponentEndOverlap.AddDynamic(this, &AHaunticaCameraTriggerBox::OnPlayerExited);
 }
 
-void AHaunticaCameraTriggerBox::OnPlayerEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+void AHaunticaCameraTriggerBox::Tick(float DeltaSeconds)
 {
-	if (OtherActor != UGameplayStatics::GetPlayerPawn(this, 0))
+	Super::Tick(DeltaSeconds);
+	
+	if (!PlayerController)
 	{
 		return;
 	}
 	
-	UE_LOG(LogTemp, Log, TEXT("Player is entering %s"), *GetName())
+	const EHaunticaCameraTriggerSide CurrentPlayerSide = GetTriggerRelativePlayerSide();
+	
+	if (CurrentPlayerSide == LastPlayerSide)
+	{
+		return;
+	}
+	
+	ACameraActor* NewViewTarget = nullptr;
+	
+	switch (LastPlayerSide)
+	{
+	case EHaunticaCameraTriggerSide::Forward:
+		NewViewTarget = ForwardCameraActor;
+		break;
+		
+	case EHaunticaCameraTriggerSide::Backward:
+		NewViewTarget = BackwardCameraActor;
+		break;
+		
+	default:
+		break;
+	}
+	
+	if (NewViewTarget != PlayerController->GetViewTarget())
+	{
+		PlayerController->SetViewTarget(NewViewTarget);
+	}
+	
+	LastPlayerSide = CurrentPlayerSide;
+}
+
+void AHaunticaCameraTriggerBox::BeginPlay()
+{
+	Super::BeginPlay();
+	
+	PlayerController = UGameplayStatics::GetPlayerController(this, 0);
+	
+	check(PlayerController);
+	PlayerPawn = PlayerController->GetPawn();
+}
+
+void AHaunticaCameraTriggerBox::OnPlayerEntered(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (!IsPlayerPawn(OtherActor))
+	{
+		return;
+	}
+	
+	LastPlayerSide = GetTriggerRelativePlayerSide();
+
+	SetActorTickEnabled(true);
 }
 
 void AHaunticaCameraTriggerBox::OnPlayerExited(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	if (OtherActor != UGameplayStatics::GetPlayerPawn(this, 0))
+	if (!IsPlayerPawn(OtherActor))
 	{
 		return;
 	}
 	
-	UE_LOG(LogTemp, Log, TEXT("Player is exiting %s"), *GetName())
+	SetActorTickEnabled(false);
+}
+
+EHaunticaCameraTriggerSide AHaunticaCameraTriggerBox::GetTriggerRelativePlayerSide() const
+{
+	const FVector PlayerRelativeLocation = GetActorLocation() - PlayerPawn->GetActorLocation();
+	const float Dot = FVector::DotProduct(PlayerRelativeLocation, GetActorForwardVector());
+	
+	return Dot > 0.0f ? EHaunticaCameraTriggerSide::Forward : EHaunticaCameraTriggerSide::Backward;
+}
+
+bool AHaunticaCameraTriggerBox::IsPlayerPawn(const AActor* const OtherActor) const
+{
+	return PlayerPawn && OtherActor == PlayerPawn;
 }

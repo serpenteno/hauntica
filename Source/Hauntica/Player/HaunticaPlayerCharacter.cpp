@@ -38,14 +38,7 @@ void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputVal
 {
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
-	if (Value.Y > 0.0f)
-	{
-		GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
-	}
-	else
-	{
-		GetCharacterMovement()->MaxWalkSpeed = MaxBackwardWalkSpeed;
-	}
+	GetCharacterMovement()->MaxWalkSpeed = Value.Y > 0.0f ? MaxForwardWalkSpeed : MaxBackwardWalkSpeed;
 }
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)

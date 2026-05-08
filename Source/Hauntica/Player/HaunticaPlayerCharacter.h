@@ -27,18 +27,18 @@ private:
 	void SetMaxWalkSpeed(const FInputActionValue& InputValue);
 	void Turn(const FInputActionValue& InputValue);
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> MoveAction;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> TurnAction;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement|Tank Controls", meta=(AllowPrivateAccess="true", ForceUnits="cm/s"))
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxForwardWalkSpeed = 160.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement|Tank Controls", meta=(AllowPrivateAccess="true", ForceUnits="cm/s"))
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxBackwardWalkSpeed = 100.0f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Movement|Tank Controls", meta=(AllowPrivateAccess="true", ForceUnits="deg/s"))
+	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
 	float TurnRate = 200.0f;
 };

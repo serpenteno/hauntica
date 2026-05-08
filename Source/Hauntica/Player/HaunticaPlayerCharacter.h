@@ -19,7 +19,7 @@ public:
 	AHaunticaPlayerCharacter();
 
 	//~ Begin APawn Interface
-	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
+	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	//~ End APawn Interface
 	
 private:

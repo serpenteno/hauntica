@@ -34,6 +34,8 @@ private:
 	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
 	void StopMoving();
+	void StartSprinting();
+	void StopSprinting();
 	void Turn(const FInputActionValue& InputValue);
 	
 	void UpdateMaxWalkSpeed() const;
@@ -44,11 +46,20 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> TurnAction;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> SprintAction;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxForwardWalkSpeed = 160.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxBackwardWalkSpeed = 100.0f;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Movement", meta=(ForceUnits="cm/s"))
+	float MaxSprintSpeed = 300.0f;
+	
+	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
+	bool bWantsToSprint = false;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
 	float TurnRate = 200.0f;

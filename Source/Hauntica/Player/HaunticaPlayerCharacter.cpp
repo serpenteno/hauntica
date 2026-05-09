@@ -25,6 +25,9 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Move);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopMoving);
 	
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartSprinting);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopSprinting);
+	
 	EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Turn);
 }
 
@@ -58,8 +61,20 @@ void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 void AHaunticaPlayerCharacter::StopMoving()
 {
 	CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+	UpdateMaxWalkSpeed();
 }
 
+void AHaunticaPlayerCharacter::StartSprinting()
+{
+	bWantsToSprint = true;
+	UpdateMaxWalkSpeed();
+}
+
+void AHaunticaPlayerCharacter::StopSprinting()
+{
+	bWantsToSprint = false;
+	UpdateMaxWalkSpeed();
+}
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
 {
@@ -75,7 +90,7 @@ void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
 	switch (CurrentTankMovementDirection)
 	{
 		case EHaunticaTankMovementDirection::Forward:
-			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+			GetCharacterMovement()->MaxWalkSpeed = bWantsToSprint ? MaxSprintSpeed : MaxForwardWalkSpeed;
 			break;
 		
 		case EHaunticaTankMovementDirection::Backward:

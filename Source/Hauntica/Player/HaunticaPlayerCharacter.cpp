@@ -38,7 +38,33 @@ void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputVal
 {
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
-	GetCharacterMovement()->MaxWalkSpeed = Value.Y > 0.0f ? MaxForwardWalkSpeed : MaxBackwardWalkSpeed;
+	if (Value.Y > 0.0f)
+	{
+		CurrentTankMovementDirection = EHaunticaTankMovementDirection::Forward;
+	}
+	else if (Value.Y < 0.0f)
+	{
+		CurrentTankMovementDirection = EHaunticaTankMovementDirection::Backward;
+	}
+	else
+	{
+		CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+	}
+
+	switch (CurrentTankMovementDirection)
+	{
+		case EHaunticaTankMovementDirection::Forward:
+			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+			break;
+		
+		case EHaunticaTankMovementDirection::Backward:
+			GetCharacterMovement()->MaxWalkSpeed = MaxBackwardWalkSpeed;
+			break;
+		
+		default:
+			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+			break;
+	}
 }
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)

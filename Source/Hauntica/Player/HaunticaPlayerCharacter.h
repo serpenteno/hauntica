@@ -10,6 +10,14 @@ struct FInputActionValue;
 
 class UInputAction;
 
+UENUM()
+enum class EHaunticaTankMovementDirection
+{
+	None UMETA(DisplayName="None"),
+	Forward UMETA(DisplayName="Forward"),
+	Backward UMETA(DisplayName="Backward")
+};
+
 UCLASS()
 class HAUNTICA_API AHaunticaPlayerCharacter : public ACharacter
 {
@@ -41,4 +49,7 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
 	float TurnRate = 200.0f;
+	
+	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement|Tank Controls")
+	EHaunticaTankMovementDirection CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
 };

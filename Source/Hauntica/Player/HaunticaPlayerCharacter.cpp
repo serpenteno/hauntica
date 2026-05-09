@@ -21,20 +21,14 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	
 	UEnhancedInputComponent* const EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::SetMaxWalkSpeed);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartMoving);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Move);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopMoving);
 	
 	EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Turn);
 }
 
-void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
-{
-	const FVector2D Value = InputValue.Get<FVector2D>();
-	
-	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
-}
-
-void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputValue)
+void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
 {
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
@@ -50,7 +44,34 @@ void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputVal
 	{
 		CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
 	}
+	
+	UpdateMaxWalkSpeed();
+}
 
+void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
+{
+	const FVector2D Value = InputValue.Get<FVector2D>();
+	
+	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
+}
+
+void AHaunticaPlayerCharacter::StopMoving()
+{
+	CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+}
+
+
+void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
+{
+	const float Value = InputValue.Get<float>();
+	
+	const float Degrees = FMath::Sign(Value) * TurnRate * GetWorld()->GetDeltaSeconds();
+	
+	AddActorLocalRotation(FRotator(0.0f, Degrees, 0.0f));
+}
+
+void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
+{
 	switch (CurrentTankMovementDirection)
 	{
 		case EHaunticaTankMovementDirection::Forward:
@@ -65,13 +86,4 @@ void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputVal
 			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
 			break;
 	}
-}
-
-void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
-{
-	const float Value = InputValue.Get<float>();
-	
-	const float Degrees = FMath::Sign(Value) * TurnRate * GetWorld()->GetDeltaSeconds();
-	
-	AddActorLocalRotation(FRotator(0.0f, Degrees, 0.0f));
 }

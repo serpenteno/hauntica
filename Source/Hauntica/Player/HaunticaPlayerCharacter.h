@@ -31,9 +31,12 @@ public:
 	//~ End APawn Interface
 	
 private:
+	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
-	void SetMaxWalkSpeed(const FInputActionValue& InputValue);
+	void StopMoving();
 	void Turn(const FInputActionValue& InputValue);
+	
+	void UpdateMaxWalkSpeed() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> MoveAction;

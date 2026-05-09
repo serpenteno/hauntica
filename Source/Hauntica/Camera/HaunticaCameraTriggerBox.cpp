@@ -52,16 +52,17 @@ void AHaunticaCameraTriggerBox::Tick(float DeltaSeconds)
 		return;
 	}
 	
-	const EHaunticaCameraTriggerSide CurrentPlayerSide = GetTriggerRelativePlayerSide();
+	const EHaunticaCameraTriggerSide LastPlayerPawnSide = CurrentPlayerPawnSide;
+	CurrentPlayerPawnSide = CalculatePlayerPawnSide();
 	
-	if (CurrentPlayerSide == LastPlayerSide)
+	if (CurrentPlayerPawnSide == LastPlayerPawnSide)
 	{
 		return;
 	}
 	
 	ACameraActor* NewViewTarget = nullptr;
 	
-	switch (LastPlayerSide)
+	switch (LastPlayerPawnSide)
 	{
 	case EHaunticaCameraTriggerSide::Forward:
 		NewViewTarget = ForwardCameraActor;
@@ -79,8 +80,6 @@ void AHaunticaCameraTriggerBox::Tick(float DeltaSeconds)
 	{
 		PlayerController->SetViewTarget(NewViewTarget);
 	}
-	
-	LastPlayerSide = CurrentPlayerSide;
 }
 
 void AHaunticaCameraTriggerBox::BeginPlay()
@@ -105,7 +104,7 @@ void AHaunticaCameraTriggerBox::OnPlayerEntered(UPrimitiveComponent* OverlappedC
 		return;
 	}
 	
-	LastPlayerSide = GetTriggerRelativePlayerSide();
+	CurrentPlayerPawnSide = CalculatePlayerPawnSide();
 
 	SetActorTickEnabled(true);
 }
@@ -120,7 +119,7 @@ void AHaunticaCameraTriggerBox::OnPlayerExited(UPrimitiveComponent* OverlappedCo
 	SetActorTickEnabled(false);
 }
 
-EHaunticaCameraTriggerSide AHaunticaCameraTriggerBox::GetTriggerRelativePlayerSide() const
+EHaunticaCameraTriggerSide AHaunticaCameraTriggerBox::CalculatePlayerPawnSide() const
 {
 	const FVector PlayerRelativeLocation = GetActorLocation() - PlayerPawn->GetActorLocation();
 	const float Dot = FVector::DotProduct(PlayerRelativeLocation, GetActorForwardVector());

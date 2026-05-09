@@ -41,7 +41,7 @@ private:
 	UFUNCTION()
 	void OnPlayerExited(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
-	EHaunticaCameraTriggerSide GetTriggerRelativePlayerSide() const;
+	EHaunticaCameraTriggerSide CalculatePlayerPawnSide() const;
 	bool IsPlayerPawn(const AActor* const OtherActor) const;
 
 	/** Camera to set the view target to when the player walks through the trigger box in its forward direction */
@@ -61,7 +61,7 @@ private:
 	TObjectPtr<UArrowComponent> BackwardArrow;
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Player")
-	EHaunticaCameraTriggerSide LastPlayerSide;
+	EHaunticaCameraTriggerSide CurrentPlayerPawnSide;
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Player")
 	TObjectPtr<APawn> PlayerPawn;

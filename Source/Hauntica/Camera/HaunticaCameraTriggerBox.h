@@ -41,17 +41,15 @@ private:
 	UFUNCTION()
 	void OnPlayerExited(UPrimitiveComponent* OverlappedComponent, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex);
 	
-	UFUNCTION(BlueprintGetter)
 	EHaunticaCameraTriggerSide GetTriggerRelativePlayerSide() const;
-	
 	bool IsPlayerPawn(const AActor* const OtherActor) const;
 
 	/** Camera to set the view target to when the player walks through the trigger box in its forward direction */
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Camera", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditInstanceOnly, Category="Camera")
 	TObjectPtr<ACameraActor> ForwardCameraActor;
 	
 	/** Camera to set the view target to when the player walks through the trigger box in its backward direction */
-	UPROPERTY(EditInstanceOnly, BlueprintReadOnly, Category="Camera", meta=(AllowPrivateAccess="true"))
+	UPROPERTY(EditInstanceOnly, Category="Camera")
 	TObjectPtr<ACameraActor> BackwardCameraActor;
 	
 	/** Indicates the forward direction of the trigger box */

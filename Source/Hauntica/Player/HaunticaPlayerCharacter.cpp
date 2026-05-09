@@ -37,15 +37,15 @@ void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
 	
 	if (Value.Y > 0.0f)
 	{
-		CurrentTankMovementDirection = EHaunticaTankMovementDirection::Forward;
+		CurrentPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
 	}
 	else if (Value.Y < 0.0f)
 	{
-		CurrentTankMovementDirection = EHaunticaTankMovementDirection::Backward;
+		CurrentPlayerState = EHaunticaPlayerState::WalkingBackward;
 	}
 	else
 	{
-		CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+		CurrentPlayerState = EHaunticaPlayerState::Idle;
 	}
 	
 	UpdateMaxWalkSpeed();
@@ -60,20 +60,30 @@ void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 
 void AHaunticaPlayerCharacter::StopMoving()
 {
-	CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+	CurrentPlayerState = EHaunticaPlayerState::Idle;
 	UpdateMaxWalkSpeed();
 }
 
 void AHaunticaPlayerCharacter::StartSprinting()
 {
 	bWantsToSprint = true;
-	UpdateMaxWalkSpeed();
+	
+	if (CurrentPlayerState == EHaunticaPlayerState::Walking)
+	{
+		CurrentPlayerState = EHaunticaPlayerState::Sprinting;
+		UpdateMaxWalkSpeed();
+	}
 }
 
 void AHaunticaPlayerCharacter::StopSprinting()
 {
 	bWantsToSprint = false;
-	UpdateMaxWalkSpeed();
+
+	if (CurrentPlayerState == EHaunticaPlayerState::Sprinting)
+	{
+		CurrentPlayerState = EHaunticaPlayerState::Walking;
+		UpdateMaxWalkSpeed();	
+	}
 }
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
@@ -87,14 +97,18 @@ void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
 
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
 {
-	switch (CurrentTankMovementDirection)
+	switch (CurrentPlayerState)
 	{
-		case EHaunticaTankMovementDirection::Forward:
-			GetCharacterMovement()->MaxWalkSpeed = bWantsToSprint ? MaxSprintSpeed : MaxForwardWalkSpeed;
+		case EHaunticaPlayerState::Walking:
+			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
 			break;
 		
-		case EHaunticaTankMovementDirection::Backward:
+		case EHaunticaPlayerState::WalkingBackward:
 			GetCharacterMovement()->MaxWalkSpeed = MaxBackwardWalkSpeed;
+			break;
+		
+		case EHaunticaPlayerState::Sprinting:
+			GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
 			break;
 		
 		default:

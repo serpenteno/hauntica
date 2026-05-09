@@ -11,11 +11,12 @@ struct FInputActionValue;
 class UInputAction;
 
 UENUM()
-enum class EHaunticaTankMovementDirection
+enum class EHaunticaPlayerState
 {
-	None UMETA(DisplayName="None"),
-	Forward UMETA(DisplayName="Forward"),
-	Backward UMETA(DisplayName="Backward")
+	Idle UMETA(DisplayName="Idle"),
+	Walking UMETA(DisplayName="Walking"),
+	WalkingBackward UMETA(DisplayName="Walking Backward"),
+	Sprinting UMETA(DisplayName="Sprinting")
 };
 
 UCLASS()
@@ -29,6 +30,11 @@ public:
 	//~ Begin APawn Interface
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	//~ End APawn Interface
+	
+	bool IsSprinting() const
+	{
+		return CurrentPlayerState == EHaunticaPlayerState::Sprinting;
+	}
 	
 private:
 	void StartMoving(const FInputActionValue& InputValue);
@@ -64,6 +70,6 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
 	float TurnRate = 200.0f;
 	
-	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement|Tank Controls")
-	EHaunticaTankMovementDirection CurrentTankMovementDirection = EHaunticaTankMovementDirection::None;
+	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
+	EHaunticaPlayerState CurrentPlayerState = EHaunticaPlayerState::Idle;
 };

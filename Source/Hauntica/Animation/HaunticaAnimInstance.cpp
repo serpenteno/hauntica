@@ -3,16 +3,15 @@
 
 #include "HaunticaAnimInstance.h"
 
+#include "Hauntica/Player/HaunticaPlayerCharacter.h"
+
 #include "GameFramework/CharacterMovementComponent.h"
 
 void UHaunticaAnimInstance::NativeInitializeAnimation()
 {
 	Super::NativeInitializeAnimation();
 	
-	if (const AActor* const Owner = GetOwningActor())
-	{
-		CharacterMovementComponent = Owner->GetComponentByClass<UCharacterMovementComponent>();
-	}
+	PlayerCharacter = Cast<AHaunticaPlayerCharacter>(GetOwningActor());
 }
 
 void UHaunticaAnimInstance::NativeThreadSafeUpdateAnimation(float DeltaSeconds)
@@ -26,9 +25,13 @@ void UHaunticaAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 {
 	Super::NativeUpdateAnimation(DeltaSeconds);
 	
-	if (CharacterMovementComponent)
+	if (!PlayerCharacter || !PlayerCharacter->GetCharacterMovement())
 	{
-		Acceleration = CharacterMovementComponent->GetCurrentAcceleration();
-		ForwardDirection = CharacterMovementComponent->GetForwardVector();
+		return;
 	}
+	
+	bIsSprinting = PlayerCharacter->IsSprinting();
+	
+	Acceleration = PlayerCharacter->GetCharacterMovement()->GetCurrentAcceleration();
+	ForwardDirection = PlayerCharacter->GetCharacterMovement()->GetForwardVector();
 }

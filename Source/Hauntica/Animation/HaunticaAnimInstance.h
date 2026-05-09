@@ -6,6 +6,7 @@
 #include "Animation/AnimInstance.h"
 #include "HaunticaAnimInstance.generated.h"
 
+class AHaunticaPlayerCharacter;
 class UCharacterMovementComponent;
 
 UCLASS()
@@ -22,6 +23,9 @@ public:
 	
 private:
 	UPROPERTY(Transient, BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess="true"))
+	bool bIsSprinting;
+	
+	UPROPERTY(Transient, BlueprintReadOnly, Category="Movement", meta=(AllowPrivateAccess="true"))
 	float AccelerationValue;
 	
 	UPROPERTY(Transient)
@@ -31,5 +35,5 @@ private:
 	FVector ForwardDirection;
 	
 	UPROPERTY(Transient)
-	TObjectPtr<UCharacterMovementComponent> CharacterMovementComponent;
+	TObjectPtr<AHaunticaPlayerCharacter> PlayerCharacter;
 };

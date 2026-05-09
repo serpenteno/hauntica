@@ -26,6 +26,7 @@ Saved/Config/WindowsEditor/GameUserSettings.ini
 # IDE/editor settings
 .vscode/
 .idea/
+.vs/
 
 # Compiled files
 *.exe

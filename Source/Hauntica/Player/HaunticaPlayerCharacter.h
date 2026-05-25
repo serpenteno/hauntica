@@ -10,6 +10,15 @@ struct FInputActionValue;
 
 class UInputAction;
 
+UENUM()
+enum class EHaunticaPlayerState
+{
+	Idle UMETA(DisplayName="Idle"),
+	Walking UMETA(DisplayName="Walking"),
+	WalkingBackward UMETA(DisplayName="Walking Backward"),
+	Sprinting UMETA(DisplayName="Sprinting")
+};
+
 UCLASS()
 class HAUNTICA_API AHaunticaPlayerCharacter : public ACharacter
 {
@@ -22,10 +31,20 @@ public:
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	//~ End APawn Interface
 	
+	bool IsSprinting() const
+	{
+		return CurrentPlayerState == EHaunticaPlayerState::Sprinting;
+	}
+	
 private:
+	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
-	void SetMaxWalkSpeed(const FInputActionValue& InputValue);
+	void StopMoving();
+	void StartSprinting();
+	void StopSprinting();
 	void Turn(const FInputActionValue& InputValue);
+	
+	void UpdateMaxWalkSpeed() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> MoveAction;
@@ -33,12 +52,24 @@ private:
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> TurnAction;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> SprintAction;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxForwardWalkSpeed = 160.0f;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxBackwardWalkSpeed = 100.0f;
 	
+	UPROPERTY(EditDefaultsOnly, Category="Movement", meta=(ForceUnits="cm/s"))
+	float MaxSprintSpeed = 300.0f;
+	
+	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
+	bool bWantsToSprint = false;
+	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
 	float TurnRate = 200.0f;
+	
+	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
+	EHaunticaPlayerState CurrentPlayerState = EHaunticaPlayerState::Idle;
 };

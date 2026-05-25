@@ -21,10 +21,34 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	
 	UEnhancedInputComponent* const EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::SetMaxWalkSpeed);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartMoving);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Move);
+	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopMoving);
+	
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartSprinting);
+	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopSprinting);
 	
 	EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Turn);
+}
+
+void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
+{
+	const FVector2D Value = InputValue.Get<FVector2D>();
+	
+	if (Value.Y > 0.0f)
+	{
+		CurrentPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
+	}
+	else if (Value.Y < 0.0f)
+	{
+		CurrentPlayerState = EHaunticaPlayerState::WalkingBackward;
+	}
+	else
+	{
+		CurrentPlayerState = EHaunticaPlayerState::Idle;
+	}
+	
+	UpdateMaxWalkSpeed();
 }
 
 void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
@@ -34,11 +58,32 @@ void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
 }
 
-void AHaunticaPlayerCharacter::SetMaxWalkSpeed(const FInputActionValue& InputValue)
+void AHaunticaPlayerCharacter::StopMoving()
 {
-	const FVector2D Value = InputValue.Get<FVector2D>();
+	CurrentPlayerState = EHaunticaPlayerState::Idle;
+	UpdateMaxWalkSpeed();
+}
+
+void AHaunticaPlayerCharacter::StartSprinting()
+{
+	bWantsToSprint = true;
 	
-	GetCharacterMovement()->MaxWalkSpeed = Value.Y > 0.0f ? MaxForwardWalkSpeed : MaxBackwardWalkSpeed;
+	if (CurrentPlayerState == EHaunticaPlayerState::Walking)
+	{
+		CurrentPlayerState = EHaunticaPlayerState::Sprinting;
+		UpdateMaxWalkSpeed();
+	}
+}
+
+void AHaunticaPlayerCharacter::StopSprinting()
+{
+	bWantsToSprint = false;
+
+	if (CurrentPlayerState == EHaunticaPlayerState::Sprinting)
+	{
+		CurrentPlayerState = EHaunticaPlayerState::Walking;
+		UpdateMaxWalkSpeed();	
+	}
 }
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
@@ -48,4 +93,26 @@ void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
 	const float Degrees = FMath::Sign(Value) * TurnRate * GetWorld()->GetDeltaSeconds();
 	
 	AddActorLocalRotation(FRotator(0.0f, Degrees, 0.0f));
+}
+
+void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
+{
+	switch (CurrentPlayerState)
+	{
+		case EHaunticaPlayerState::Walking:
+			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+			break;
+		
+		case EHaunticaPlayerState::WalkingBackward:
+			GetCharacterMovement()->MaxWalkSpeed = MaxBackwardWalkSpeed;
+			break;
+		
+		case EHaunticaPlayerState::Sprinting:
+			GetCharacterMovement()->MaxWalkSpeed = MaxSprintSpeed;
+			break;
+		
+		default:
+			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+			break;
+	}
 }

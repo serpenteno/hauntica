@@ -29,6 +29,8 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopSprinting);
 	
 	EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Turn);
+	
+	EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
 }
 
 void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
@@ -68,6 +70,12 @@ void AHaunticaPlayerCharacter::StartSprinting()
 {
 	bWantsToSprint = true;
 	
+	if (CurrentPlayerState == EHaunticaPlayerState::WalkingBackward)
+	{
+		StartQuickTurn();
+		return;
+	}
+	
 	if (CurrentPlayerState == EHaunticaPlayerState::Walking)
 	{
 		CurrentPlayerState = EHaunticaPlayerState::Sprinting;
@@ -93,6 +101,11 @@ void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
 	const float Degrees = FMath::Sign(Value) * TurnRate * GetWorld()->GetDeltaSeconds();
 	
 	AddActorLocalRotation(FRotator(0.0f, Degrees, 0.0f));
+}
+
+void AHaunticaPlayerCharacter::StartQuickTurn()
+{
+	UE_LOG(LogTemp, Display, TEXT("Performing quick turn"))
 }
 
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const

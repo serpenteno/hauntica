@@ -43,6 +43,7 @@ private:
 	void StartSprinting();
 	void StopSprinting();
 	void Turn(const FInputActionValue& InputValue);
+	void StartQuickTurn();
 	
 	void UpdateMaxWalkSpeed() const;
 	
@@ -54,6 +55,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Input")
 	TObjectPtr<UInputAction> SprintAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Input")
+	TObjectPtr<UInputAction> QuickTurnAction;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
 	float MaxForwardWalkSpeed = 160.0f;

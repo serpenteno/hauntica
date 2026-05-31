@@ -9,10 +9,36 @@
 
 AHaunticaPlayerCharacter::AHaunticaPlayerCharacter()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
+	
 	bUseControllerRotationYaw = false;
 	
 	GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
+}
+
+void AHaunticaPlayerCharacter::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+	
+	if (CurrentPlayerState != EHaunticaPlayerState::QuickTurning)
+	{
+		SetActorTickEnabled(false);
+		return;
+	}
+	
+	const FRotator NewRotation = FMath::RInterpConstantTo(GetActorRotation(), QuickTurnTargetRotation, DeltaSeconds, 180.0f / QuickTurnDuration);
+	
+	if (FMath::IsNearlyEqual(NewRotation.Yaw, QuickTurnTargetRotation.Yaw, QuickTurnTargetRotationErrorTolerance))
+	{
+		SetActorRotation(QuickTurnTargetRotation);
+		StopQuickTurn();
+		SetActorTickEnabled(false);
+	}
+	else
+	{
+		SetActorRotation(NewRotation);
+	}
 }
 
 void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -29,6 +55,8 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopSprinting);
 	
 	EnhancedInputComponent->BindAction(TurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Turn);
+	
+	EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
 }
 
 void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
@@ -37,22 +65,32 @@ void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
 	
 	if (Value.Y > 0.0f)
 	{
-		CurrentPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
+		DesiredPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
 	}
 	else if (Value.Y < 0.0f)
 	{
-		CurrentPlayerState = EHaunticaPlayerState::WalkingBackward;
+		DesiredPlayerState = EHaunticaPlayerState::WalkingBackward;
 	}
 	else
 	{
-		CurrentPlayerState = EHaunticaPlayerState::Idle;
+		DesiredPlayerState = EHaunticaPlayerState::Idle;
 	}
 	
-	UpdateMaxWalkSpeed();
+	if (!CanMove())
+	{
+		return;
+	}
+	
+	ApplyDesiredPlayerState();
 }
 
 void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 {
+	if (!CanMove())
+	{
+		return;
+	}
+	
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
 	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
@@ -60,18 +98,36 @@ void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 
 void AHaunticaPlayerCharacter::StopMoving()
 {
-	CurrentPlayerState = EHaunticaPlayerState::Idle;
-	UpdateMaxWalkSpeed();
+	DesiredPlayerState = EHaunticaPlayerState::Idle;
+	
+	if (!CanMove())
+	{
+		return;
+	}
+	
+	ApplyDesiredPlayerState();
 }
 
 void AHaunticaPlayerCharacter::StartSprinting()
 {
 	bWantsToSprint = true;
 	
-	if (CurrentPlayerState == EHaunticaPlayerState::Walking)
+	if (CurrentPlayerState == EHaunticaPlayerState::WalkingBackward)
 	{
-		CurrentPlayerState = EHaunticaPlayerState::Sprinting;
-		UpdateMaxWalkSpeed();
+		StartQuickTurn();
+		return;
+	}
+	
+	if (DesiredPlayerState == EHaunticaPlayerState::Walking)
+	{
+		DesiredPlayerState = EHaunticaPlayerState::Sprinting;
+		
+		if (!CanMove())
+		{
+			return;
+		}
+		
+		ApplyDesiredPlayerState();
 	}
 }
 
@@ -79,20 +135,52 @@ void AHaunticaPlayerCharacter::StopSprinting()
 {
 	bWantsToSprint = false;
 
-	if (CurrentPlayerState == EHaunticaPlayerState::Sprinting)
+	if (DesiredPlayerState == EHaunticaPlayerState::Sprinting)
 	{
-		CurrentPlayerState = EHaunticaPlayerState::Walking;
-		UpdateMaxWalkSpeed();	
+		DesiredPlayerState = EHaunticaPlayerState::Walking;
+		
+		if (!CanMove())
+		{
+			return;
+		}
+		
+		ApplyDesiredPlayerState();
 	}
 }
 
 void AHaunticaPlayerCharacter::Turn(const FInputActionValue& InputValue)
 {
+	if (!CanMove())
+	{
+		return;
+	}
+	
 	const float Value = InputValue.Get<float>();
 	
 	const float Degrees = FMath::Sign(Value) * TurnRate * GetWorld()->GetDeltaSeconds();
 	
 	AddActorLocalRotation(FRotator(0.0f, Degrees, 0.0f));
+}
+
+void AHaunticaPlayerCharacter::StartQuickTurn()
+{
+	if (!CanQuickTurn())
+	{
+		return;
+	}
+	
+	CurrentPlayerState = EHaunticaPlayerState::QuickTurning;
+	
+	QuickTurnTargetRotation = GetActorRotation();
+	QuickTurnTargetRotation.Yaw += 180.0f;
+	QuickTurnTargetRotation.Normalize();
+	
+	SetActorTickEnabled(true);
+}
+
+void AHaunticaPlayerCharacter::StopQuickTurn()
+{
+	ApplyDesiredPlayerState();
 }
 
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
@@ -115,4 +203,20 @@ void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
 			GetCharacterMovement()->MaxWalkSpeed = MaxForwardWalkSpeed;
 			break;
 	}
+}
+
+void AHaunticaPlayerCharacter::ApplyDesiredPlayerState()
+{
+	CurrentPlayerState = DesiredPlayerState;
+	UpdateMaxWalkSpeed();
+}
+
+bool AHaunticaPlayerCharacter::CanMove() const
+{
+	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
+}
+
+bool AHaunticaPlayerCharacter::CanQuickTurn() const
+{
+	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
 }

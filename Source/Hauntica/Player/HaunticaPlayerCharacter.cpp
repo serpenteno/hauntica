@@ -47,7 +47,6 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	
 	UEnhancedInputComponent* const EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartMoving);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Move);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopMoving);
 	
@@ -59,7 +58,7 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
 }
 
-void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
+void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 {
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
@@ -81,17 +80,10 @@ void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
 		return;
 	}
 	
-	ApplyDesiredPlayerState();
-}
-
-void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
-{
-	if (!CanMove())
+	if (CurrentPlayerState != DesiredPlayerState)
 	{
-		return;
+		ApplyDesiredPlayerState();
 	}
-	
-	const FVector2D Value = InputValue.Get<FVector2D>();
 	
 	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
 }

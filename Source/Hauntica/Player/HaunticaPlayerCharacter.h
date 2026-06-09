@@ -42,7 +42,6 @@ public:
 	}
 	
 private:
-	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
 	void StopMoving();
 	void StartSprinting();

@@ -52,6 +52,7 @@ private:
 	
 	void UpdateMaxWalkSpeed() const;
 	void ApplyDesiredPlayerState();
+	EHaunticaPlayerState CalculatePlayerStateFromInput(const float InputY) const;
 	
 	bool CanMove() const;
 	bool CanQuickTurn() const;

@@ -62,18 +62,7 @@ void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 {
 	const FVector2D Value = InputValue.Get<FVector2D>();
 	
-	if (Value.Y > 0.0f)
-	{
-		DesiredPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
-	}
-	else if (Value.Y < 0.0f)
-	{
-		DesiredPlayerState = EHaunticaPlayerState::WalkingBackward;
-	}
-	else
-	{
-		DesiredPlayerState = EHaunticaPlayerState::Idle;
-	}
+	DesiredPlayerState = CalculatePlayerStateFromInput(Value.Y);
 	
 	if (!CanMove())
 	{
@@ -201,6 +190,21 @@ void AHaunticaPlayerCharacter::ApplyDesiredPlayerState()
 {
 	CurrentPlayerState = DesiredPlayerState;
 	UpdateMaxWalkSpeed();
+}
+
+EHaunticaPlayerState AHaunticaPlayerCharacter::CalculatePlayerStateFromInput(const float InputY) const
+{
+	if (InputY > 0.0f)
+	{
+		return bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
+	}
+	
+	if (InputY < 0.0f)
+	{
+		return EHaunticaPlayerState::WalkingBackward;
+	}
+	
+	return EHaunticaPlayerState::Idle;
 }
 
 bool AHaunticaPlayerCharacter::CanMove() const

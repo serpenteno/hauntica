@@ -47,7 +47,6 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	
 	UEnhancedInputComponent* const EnhancedInputComponent = CastChecked<UEnhancedInputComponent>(PlayerInputComponent);
 	
-	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Started, this, &AHaunticaPlayerCharacter::StartMoving);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Move);
 	EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Completed, this, &AHaunticaPlayerCharacter::StopMoving);
 	
@@ -59,39 +58,21 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
 }
 
-void AHaunticaPlayerCharacter::StartMoving(const FInputActionValue& InputValue)
-{
-	const FVector2D Value = InputValue.Get<FVector2D>();
-	
-	if (Value.Y > 0.0f)
-	{
-		DesiredPlayerState = bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
-	}
-	else if (Value.Y < 0.0f)
-	{
-		DesiredPlayerState = EHaunticaPlayerState::WalkingBackward;
-	}
-	else
-	{
-		DesiredPlayerState = EHaunticaPlayerState::Idle;
-	}
-	
-	if (!CanMove())
-	{
-		return;
-	}
-	
-	ApplyDesiredPlayerState();
-}
-
 void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
 {
+	const FVector2D Value = InputValue.Get<FVector2D>();
+	
+	DesiredPlayerState = CalculatePlayerStateFromInput(Value.Y);
+	
 	if (!CanMove())
 	{
 		return;
 	}
 	
-	const FVector2D Value = InputValue.Get<FVector2D>();
+	if (CurrentPlayerState != DesiredPlayerState)
+	{
+		ApplyDesiredPlayerState();
+	}
 	
 	AddMovementInput(GetActorForwardVector(), FMath::Sign(Value.Y));
 }
@@ -209,6 +190,21 @@ void AHaunticaPlayerCharacter::ApplyDesiredPlayerState()
 {
 	CurrentPlayerState = DesiredPlayerState;
 	UpdateMaxWalkSpeed();
+}
+
+EHaunticaPlayerState AHaunticaPlayerCharacter::CalculatePlayerStateFromInput(const float InputY) const
+{
+	if (InputY > 0.0f)
+	{
+		return bWantsToSprint ? EHaunticaPlayerState::Sprinting : EHaunticaPlayerState::Walking;
+	}
+	
+	if (InputY < 0.0f)
+	{
+		return EHaunticaPlayerState::WalkingBackward;
+	}
+	
+	return EHaunticaPlayerState::Idle;
 }
 
 bool AHaunticaPlayerCharacter::CanMove() const

@@ -42,7 +42,6 @@ public:
 	}
 	
 private:
-	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
 	void StopMoving();
 	void StartSprinting();
@@ -53,6 +52,7 @@ private:
 	
 	void UpdateMaxWalkSpeed() const;
 	void ApplyDesiredPlayerState();
+	EHaunticaPlayerState CalculatePlayerStateFromInput(const float InputY) const;
 	
 	bool CanMove() const;
 	bool CanQuickTurn() const;

@@ -13,4 +13,9 @@ class HAUNTICA_API AHaunticaGameMode : public AGameModeBase
 	
 public:
 	AHaunticaGameMode();
+
+protected:
+	//~ Begin AActor Interface
+	virtual void BeginPlay() override;
+	//~ End AActor Interface
 };

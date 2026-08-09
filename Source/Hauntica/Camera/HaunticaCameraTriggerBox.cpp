@@ -76,7 +76,7 @@ void AHaunticaCameraTriggerBox::Tick(float DeltaSeconds)
 		break;
 	}
 	
-	if (NewViewTarget != PlayerController->GetViewTarget())
+	if (NewViewTarget && NewViewTarget != PlayerController->GetViewTarget())
 	{
 		PlayerController->SetViewTarget(NewViewTarget);
 	}

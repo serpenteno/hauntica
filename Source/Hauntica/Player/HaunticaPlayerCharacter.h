@@ -8,6 +8,7 @@
 
 struct FInputActionValue;
 
+class UHaunticaPlayerData;
 class UInputAction;
 
 UENUM()
@@ -29,6 +30,7 @@ public:
 	AHaunticaPlayerCharacter();
 
 	//~ Begin AActor Interface
+	virtual void BeginPlay() override;
 	virtual void Tick(float DeltaSeconds) override;
 	//~ End AActor Interface
 	
@@ -42,7 +44,6 @@ public:
 	}
 	
 private:
-	void StartMoving(const FInputActionValue& InputValue);
 	void Move(const FInputActionValue& InputValue);
 	void StopMoving();
 	void StartSprinting();
@@ -53,46 +54,31 @@ private:
 	
 	void UpdateMaxWalkSpeed() const;
 	void ApplyDesiredPlayerState();
+	EHaunticaPlayerState CalculatePlayerStateFromInput(const float InputY) const;
 	
 	bool CanMove() const;
 	bool CanQuickTurn() const;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Config")
+	TObjectPtr<UHaunticaPlayerData> PlayerData;
 
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
 	TObjectPtr<UInputAction> MoveAction;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
-	TObjectPtr<UInputAction> TurnAction;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
 	TObjectPtr<UInputAction> SprintAction;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Input")
+	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
+	TObjectPtr<UInputAction> TurnAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
 	TObjectPtr<UInputAction> QuickTurnAction;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
-	float MaxForwardWalkSpeed = 160.0f;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="cm/s"))
-	float MaxBackwardWalkSpeed = 100.0f;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Movement", meta=(ForceUnits="cm/s"))
-	float MaxSprintSpeed = 300.0f;
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
 	bool bWantsToSprint = false;
 	
-	UPROPERTY(EditDefaultsOnly, Category="Movement|Tank Controls", meta=(ForceUnits="deg/s"))
-	float TurnRate = 200.0f;
-	
-	UPROPERTY(EditDefaultsOnly, Category="Movement", meta=(ForceUnits="s", ClampMin="0.0"))
-	float QuickTurnDuration = 1.0f;
-	
 	UPROPERTY(Transient)
 	FRotator QuickTurnTargetRotation;
-	
-	/** Instantly snap to @code QuickTurnTargetRotation@endcode if the difference between the current rotation and the target rotation is less than or equal to this value */
-	UPROPERTY(EditDefaultsOnly, Category="Movement", meta=(ForceUnits="deg", ClampMin="0.0", ClampMax="180.0"))
-	float QuickTurnTargetRotationErrorTolerance = 1.0f;
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
 	EHaunticaPlayerState CurrentPlayerState = EHaunticaPlayerState::Idle;

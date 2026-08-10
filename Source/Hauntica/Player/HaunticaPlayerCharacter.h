@@ -51,6 +51,7 @@ private:
 	void Turn(const FInputActionValue& InputValue);
 	void StartQuickTurn();
 	void StopQuickTurn();
+	void Interact();
 	
 	void UpdateMaxWalkSpeed() const;
 	void ApplyDesiredPlayerState();
@@ -58,6 +59,7 @@ private:
 	
 	bool CanMove() const;
 	bool CanQuickTurn() const;
+	bool CanInteract() const;
 	
 	UPROPERTY(EditDefaultsOnly, Category="Config")
 	TObjectPtr<UHaunticaPlayerData> PlayerData;
@@ -73,6 +75,9 @@ private:
 	
 	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
 	TObjectPtr<UInputAction> QuickTurnAction;
+	
+	UPROPERTY(EditDefaultsOnly, Category="Config|Input")
+	TObjectPtr<UInputAction> InteractAction;
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
 	bool bWantsToSprint = false;

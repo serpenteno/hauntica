@@ -88,6 +88,11 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	{
 		EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
 	}
+	
+	if (InteractAction)
+	{
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Interact);
+	}
 }
 
 void AHaunticaPlayerCharacter::Move(const FInputActionValue& InputValue)
@@ -200,6 +205,16 @@ void AHaunticaPlayerCharacter::StopQuickTurn()
 	ApplyDesiredPlayerState();
 }
 
+void AHaunticaPlayerCharacter::Interact()
+{
+	if (!CanInteract())
+	{
+		return;
+	}
+	
+	UE_LOG(LogTemp, Display, TEXT("Interacting..."))
+}
+
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
 {
 	UCharacterMovementComponent* const MovementComponent = GetCharacterMovement();
@@ -256,6 +271,11 @@ bool AHaunticaPlayerCharacter::CanMove() const
 }
 
 bool AHaunticaPlayerCharacter::CanQuickTurn() const
+{
+	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
+}
+
+bool AHaunticaPlayerCharacter::CanInteract() const
 {
 	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
 }

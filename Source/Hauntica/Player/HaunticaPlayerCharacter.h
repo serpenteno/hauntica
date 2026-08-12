@@ -8,6 +8,7 @@
 
 struct FInputActionValue;
 
+class UHaunticaInteractionComponent;
 class UHaunticaPlayerData;
 class UInputAction;
 
@@ -90,4 +91,7 @@ private:
 	
 	UPROPERTY(Transient, VisibleInstanceOnly, Category="Movement")
 	EHaunticaPlayerState DesiredPlayerState = EHaunticaPlayerState::Idle;
+	
+	UPROPERTY(VisibleAnywhere, Category="Interaction")
+	TObjectPtr<UHaunticaInteractionComponent> InteractionComponent;
 };

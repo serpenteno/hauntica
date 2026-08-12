@@ -4,10 +4,10 @@
 #include "HaunticaPlayerCharacter.h"
 
 #include "HaunticaPlayerData.h"
+#include "Hauntica/Interaction/HaunticaInteractionComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 
 AHaunticaPlayerCharacter::AHaunticaPlayerCharacter()
 {
@@ -15,6 +15,8 @@ AHaunticaPlayerCharacter::AHaunticaPlayerCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	
 	bUseControllerRotationYaw = false;
+	
+	InteractionComponent = CreateDefaultSubobject<UHaunticaInteractionComponent>(TEXT("InteractionComp"));
 }
 
 void AHaunticaPlayerCharacter::BeginPlay()
@@ -212,7 +214,7 @@ void AHaunticaPlayerCharacter::Interact()
 		return;
 	}
 	
-	UE_LOG(LogTemp, Display, TEXT("Interacting..."))
+	InteractionComponent->TryInteract(this);
 }
 
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const

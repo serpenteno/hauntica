@@ -5,5 +5,5 @@
 
 void IHaunticaInteractable::Interact(AActor* const Interactor)
 {
-	
+	UE_LOG(LogTemp, Display, TEXT("%s: Interacting with %s"), *Interactor->GetName(), *_getUObject()->GetName())
 }

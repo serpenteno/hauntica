@@ -12,12 +12,13 @@ UHaunticaInteractionComponent::UHaunticaInteractionComponent()
 
 bool UHaunticaInteractionComponent::TryInteract(AActor* const Instigator) const
 {
-	UE_LOG(LogTemp, Display, TEXT("Trying to interact..."))
+	UE_LOG(LogTemp, Display, TEXT("%s: Trying to interact..."), *Instigator->GetName())
 	
 	AActor* const Actor = FindBestInteractableActor();
 	
 	if (!Actor)
 	{
+		UE_LOG(LogTemp, Warning, TEXT("%s: Failed to interact"), *Instigator->GetName())
 		return false;
 	}
 	

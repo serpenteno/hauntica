@@ -4,10 +4,10 @@
 #include "HaunticaPlayerCharacter.h"
 
 #include "HaunticaPlayerData.h"
+#include "Hauntica/Interaction/HaunticaInteractionComponent.h"
 
 #include "EnhancedInputComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
-
 
 AHaunticaPlayerCharacter::AHaunticaPlayerCharacter()
 {
@@ -15,6 +15,8 @@ AHaunticaPlayerCharacter::AHaunticaPlayerCharacter()
 	PrimaryActorTick.bStartWithTickEnabled = false;
 	
 	bUseControllerRotationYaw = false;
+	
+	InteractionComponent = CreateDefaultSubobject<UHaunticaInteractionComponent>(TEXT("InteractionComp"));
 }
 
 void AHaunticaPlayerCharacter::BeginPlay()
@@ -87,6 +89,11 @@ void AHaunticaPlayerCharacter::SetupPlayerInputComponent(UInputComponent* Player
 	if (QuickTurnAction)
 	{
 		EnhancedInputComponent->BindAction(QuickTurnAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::StartQuickTurn);
+	}
+	
+	if (InteractAction)
+	{
+		EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Triggered, this, &AHaunticaPlayerCharacter::Interact);
 	}
 }
 
@@ -200,6 +207,16 @@ void AHaunticaPlayerCharacter::StopQuickTurn()
 	ApplyDesiredPlayerState();
 }
 
+void AHaunticaPlayerCharacter::Interact()
+{
+	if (!CanInteract())
+	{
+		return;
+	}
+	
+	InteractionComponent->TryInteract(this);
+}
+
 void AHaunticaPlayerCharacter::UpdateMaxWalkSpeed() const
 {
 	UCharacterMovementComponent* const MovementComponent = GetCharacterMovement();
@@ -256,6 +273,11 @@ bool AHaunticaPlayerCharacter::CanMove() const
 }
 
 bool AHaunticaPlayerCharacter::CanQuickTurn() const
+{
+	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
+}
+
+bool AHaunticaPlayerCharacter::CanInteract() const
 {
 	return CurrentPlayerState != EHaunticaPlayerState::QuickTurning;
 }

@@ -6,8 +6,6 @@
 #include "Components/ActorComponent.h"
 #include "HaunticaInteractionComponent.generated.h"
 
-class AHaunticaPlayerCharacter;
-
 UCLASS(ClassGroup=("Hauntica"), meta=(BlueprintSpawnableComponent))
 class HAUNTICA_API UHaunticaInteractionComponent final : public UActorComponent
 {
@@ -16,7 +14,7 @@ class HAUNTICA_API UHaunticaInteractionComponent final : public UActorComponent
 public:
 	UHaunticaInteractionComponent();
 	
-	bool TryInteract(AHaunticaPlayerCharacter* const Instigator) const;
+	bool TryInteract(AActor* const Instigator) const;
 	
 	void AddInteractableActor(AActor* const Actor);
 	void RemoveInteractableActor(AActor* const Actor);

@@ -3,7 +3,7 @@
 
 #include "HaunticaInteractable.h"
 
-void IHaunticaInteractable::Interact(AHaunticaPlayerCharacter* const Interactor)
+void IHaunticaInteractable::Interact(AActor* const Interactor)
 {
 	
 }

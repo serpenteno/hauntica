@@ -6,8 +6,6 @@
 #include "UObject/Interface.h"
 #include "HaunticaInteractable.generated.h"
 
-class AHaunticaPlayerCharacter;
-
 UINTERFACE()
 class UHaunticaInteractable : public UInterface
 {
@@ -19,5 +17,5 @@ class HAUNTICA_API IHaunticaInteractable
 	GENERATED_BODY()
 
 public:
-	virtual void Interact(AHaunticaPlayerCharacter* const Interactor);
+	virtual void Interact(AActor* const Interactor);
 };

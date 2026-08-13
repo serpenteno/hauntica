@@ -10,7 +10,7 @@ UHaunticaInteractionComponent::UHaunticaInteractionComponent()
 	PrimaryComponentTick.bCanEverTick = false;
 }
 
-bool UHaunticaInteractionComponent::TryInteract(AHaunticaPlayerCharacter* const Instigator) const
+bool UHaunticaInteractionComponent::TryInteract(AActor* const Instigator) const
 {
 	UE_LOG(LogTemp, Display, TEXT("Trying to interact..."))
 	

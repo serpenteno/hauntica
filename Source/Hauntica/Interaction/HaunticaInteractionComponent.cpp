@@ -44,12 +44,14 @@ void UHaunticaInteractionComponent::RemoveInteractableActor(AActor* const Actor)
 
 AActor* UHaunticaInteractionComponent::FindBestInteractableActor() const
 {
+	const FVector OwnerLocation = GetOwner()->GetActorLocation();
+	
 	float BestDistance = FLT_MAX;
 	AActor* BestActor = nullptr;
 	
 	for (AActor* const Actor : InteractableActors)
 	{
-		const float Distance = FVector::DistSquared2D(GetOwner()->GetActorLocation(), Actor->GetActorLocation());
+		const float Distance = FVector::DistSquared2D(OwnerLocation, Actor->GetActorLocation());
 		
 		if (Distance < BestDistance)
 		{
